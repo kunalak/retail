@@ -1,0 +1,71 @@
+{% extends "/base.jinja2" %}
+
+{% block head %}
+{% endblock %}
+
+{% block body %}
+      Solr Search Reciepts by Product Name:<br>
+     <div id="solr_div">
+
+    <form action="/web/search/receipts">
+      <input type="text" name="s">
+      <input type="submit" value="Search">
+    </form>
+    </div>
+<br>
+    <section>
+    <div id="facet" style="float:left;width:20%">
+    Narrow Results By:<br><br>
+{% if categories %}
+  <b>Recipet ID:</b><br>
+
+  {% for category in categories %}
+  {% set new_filter_by = 'category_name:"' + category.name + '"'%}
+  {% if filter_by %}
+    {% set new_filter_by = filter_by + " AND " + new_filter_by %}
+  {% endif %}
+
+  <a href="{{ makeURL("/web/search","s", search_term, "filter_by", new_filter_by) }}">{{ category.name }}:</a>&nbsp;{{ category.amount}}<br>
+  {% endfor %}
+  <br>
+{% endif %}
+{% if suppliers %}
+  <b>Store ID:</b><br>
+
+  {% for supplier in suppliers %}
+  {% set new_filter_by = 'supplier_name:"' + supplier.name + '"' %}
+  {% if filter_by %}
+    {%   set new_filter_by = filter_by + " AND " + new_filter_by %}
+  {% endif %}
+
+  <a href="{{ makeURL("/web/search","s", search_term, "filter_by", new_filter_by) }}">{{ supplier.name }}:</a>&nbsp;{{ supplier.amount }}<br>
+  {% endfor %}
+{% endif %}
+
+    </div>
+    <div id="list_div" style="float:right;width:80%">
+        <br>
+        <table border="1">
+        <th width="20%">&nbsp;Receipt ID</th>
+        <th width="20%">&nbsp;Product ID</th>
+        <th width="40%">&nbsp;Product Name</th>
+        <th width="10%">&nbsp;Store ID</th>
+        <th width="10%">&nbsp;Register&nbsp;</th>
+        {% if receipts %}
+            {% for receipt in receipts %}
+                <tr>
+                <td align="center"><a href="/web/receipt?receipt_id={{ receipt.receipt_id }}">{{ receipt.receipt_id }}</a></td>
+                <td>&nbsp;<a href="/web/product?product_id={{ receipt.product_id }}">{{ receipt.product_id }}</a></td>
+                <td>&nbsp;{{ receipt.product_name }}</td>
+                <td align="center">{{ receipt.store_id}} </td>
+                <td align="center">{{ receipt.register_id}} </td>
+                </tr>
+            {% endfor %}
+        {% endif %}
+        </table>
+</div>
+</section>
+{% endblock %}
+
+{% block tail %}
+{% endblock %}
