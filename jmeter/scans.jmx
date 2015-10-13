@@ -311,7 +311,7 @@
   (credit_card_type, credit_card_number, receipt_timestamp, store_id, register_id, receipt_id, receipt_total, customer )
 values 
   (?,?,?,?,?,?,?, {first_name: ?, last_name: ?, addr1: ?, city: ?, state: ?, zip: ? })</stringProp>
-            <stringProp name="queryArguments">${credit_card_type},${credit_card_number},${receipt_date} ${receipt_time}-0700,${store_id},${register_id},${receipt_id},${receipt_total},${udFirstName}, ${udLastName}, ${udAddress}, ${udCity}, ${udState}, ${udZip} </stringProp>
+            <stringProp name="queryArguments">${credit_card_type},${credit_card_number},${receipt_date} ${receipt_time}-0700,${store_id},${register_id},${receipt_id},${receipt_total},${udFirstName},${udLastName},${udAddress},${udCity},${udState},${udZip}</stringProp>
             <stringProp name="queryType">Prepared Statement</stringProp>
             <stringProp name="resultVariable"></stringProp>
             <stringProp name="sessionName">cc</stringProp>
@@ -325,7 +325,7 @@ values
   (credit_card_type, credit_card_number, receipt_timestamp, store_id, receipt_id, receipt_total,customer ) 
 values 
   (?,?,?,?,?,?,{first_name: ?, last_name: ?, addr1: ?, city: ?, state: ?, zip: ? })</stringProp>
-            <stringProp name="queryArguments">${credit_card_type},${credit_card_number},${receipt_date} ${receipt_time}-0700,${store_id},${receipt_id},${receipt_total},${udFirstName}, ${udLastName}, ${udAddress}, ${udCity}, ${udState}, ${udZip} </stringProp>
+            <stringProp name="queryArguments">${credit_card_type},${credit_card_number},${receipt_date} ${receipt_time}-0700,${store_id},${receipt_id},${receipt_total},${udFirstName},${udLastName},${udAddress},${udCity},${udState},${udZip}</stringProp>
             <stringProp name="queryType">Prepared Statement</stringProp>
             <stringProp name="resultVariable"></stringProp>
             <stringProp name="sessionName">cc</stringProp>
@@ -339,7 +339,7 @@ values
   (store_id, receipt_date, register_id, receipt_timestamp, receipt_id, receipt_total,customer) 
 values 
   (?,?,?,?,?,?,{first_name: ?, last_name: ?, addr1: ?, city: ?, state: ?, zip: ? })</stringProp>
-            <stringProp name="queryArguments">${store_id},${receipt_date} 00:00:00+0000,${register_id},${receipt_date} ${receipt_time}-0700,${receipt_id},${receipt_total},${udFirstName}, ${udLastName}, ${udAddress}, ${udCity}, ${udState}, ${udZip} </stringProp>
+            <stringProp name="queryArguments">${store_id},${receipt_date} 00:00:00+0000,${register_id},${receipt_date} ${receipt_time}-0700,${receipt_id},${receipt_total},${udFirstName},${udLastName},${udAddress},${udCity},${udState},${udZip}</stringProp>
             <stringProp name="queryType">Prepared Statement</stringProp>
             <stringProp name="resultVariable"></stringProp>
             <stringProp name="sessionName">cc</stringProp>
