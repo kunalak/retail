@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jmeterTestPlan version="1.2" properties="2.8" jmeter="2.13.1 r1">
+<jmeterTestPlan version="1.2" properties="2.8" jmeter="2.13.2 r1">
   <hashTree>
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Test Plan" enabled="true">
       <stringProp name="TestPlan.comments"></stringProp>
@@ -21,7 +21,7 @@
         <stringProp name="username"></stringProp>
       </CassandraConnection>
       <hashTree/>
-      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="false">
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
@@ -167,6 +167,17 @@
             <stringProp name="shareMode">shareMode.all</stringProp>
           </CSVDataSet>
           <hashTree/>
+          <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="User Name Address" enabled="true">
+            <stringProp name="filename">../csv/UserData.csv</stringProp>
+            <stringProp name="fileEncoding"></stringProp>
+            <stringProp name="variableNames">udFirstName,udLastName,udAddress,udCity,udState,udZip </stringProp>
+            <stringProp name="delimiter">,</stringProp>
+            <boolProp name="quotedData">false</boolProp>
+            <boolProp name="recycle">true</boolProp>
+            <boolProp name="stopThread">false</boolProp>
+            <stringProp name="shareMode">shareMode.all</stringProp>
+          </CSVDataSet>
+          <hashTree/>
           <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="User Parameters" enabled="true">
             <collectionProp name="UserParameters.names">
               <stringProp name="204158082">receipt_id</stringProp>
@@ -296,8 +307,11 @@
           <CassandraSampler guiclass="TestBeanGUI" testclass="CassandraSampler" testname="Insert Receipt" enabled="true">
             <stringProp name="batchSize"></stringProp>
             <stringProp name="consistencyLevel">LOCAL_ONE</stringProp>
-            <stringProp name="query">insert into receipts (credit_card_type, credit_card_number, receipt_timestamp, store_id, register_id, receipt_id, receipt_total) values (?,?,?,?,?,?,?)</stringProp>
-            <stringProp name="queryArguments">${credit_card_type},${credit_card_number},${receipt_date} ${receipt_time}-0700,${store_id},${register_id},${receipt_id},${receipt_total}</stringProp>
+            <stringProp name="query">insert into receipts 
+  (credit_card_type, credit_card_number, receipt_timestamp, store_id, register_id, receipt_id, receipt_total, customer )
+values 
+  (?,?,?,?,?,?,?, {first_name: ?, last_name: ?, addr1: ?, city: ?, state: ?, zip: ? })</stringProp>
+            <stringProp name="queryArguments">${credit_card_type},${credit_card_number},${receipt_date} ${receipt_time}-0700,${store_id},${register_id},${receipt_id},${receipt_total},${udFirstName}, ${udLastName}, ${udAddress}, ${udCity}, ${udState}, ${udZip} </stringProp>
             <stringProp name="queryType">Prepared Statement</stringProp>
             <stringProp name="resultVariable"></stringProp>
             <stringProp name="sessionName">cc</stringProp>
@@ -307,8 +321,11 @@
           <CassandraSampler guiclass="TestBeanGUI" testclass="CassandraSampler" testname="Insert Receipt By Credit Card" enabled="true">
             <stringProp name="batchSize"></stringProp>
             <stringProp name="consistencyLevel">LOCAL_ONE</stringProp>
-            <stringProp name="query">insert into receipts_by_credit_card (credit_card_type, credit_card_number, receipt_timestamp, store_id, receipt_id, receipt_total) values (?,?,?,?,?,?)</stringProp>
-            <stringProp name="queryArguments">${credit_card_type},${credit_card_number},${receipt_date} ${receipt_time}-0700,${store_id},${receipt_id},${receipt_total}</stringProp>
+            <stringProp name="query">insert into receipts_by_credit_card 
+  (credit_card_type, credit_card_number, receipt_timestamp, store_id, receipt_id, receipt_total,customer ) 
+values 
+  (?,?,?,?,?,?,{first_name: ?, last_name: ?, addr1: ?, city: ?, state: ?, zip: ? })</stringProp>
+            <stringProp name="queryArguments">${credit_card_type},${credit_card_number},${receipt_date} ${receipt_time}-0700,${store_id},${receipt_id},${receipt_total},${udFirstName}, ${udLastName}, ${udAddress}, ${udCity}, ${udState}, ${udZip} </stringProp>
             <stringProp name="queryType">Prepared Statement</stringProp>
             <stringProp name="resultVariable"></stringProp>
             <stringProp name="sessionName">cc</stringProp>
@@ -318,8 +335,11 @@
           <CassandraSampler guiclass="TestBeanGUI" testclass="CassandraSampler" testname="Insert Receipt Total Store" enabled="true">
             <stringProp name="batchSize"></stringProp>
             <stringProp name="consistencyLevel">LOCAL_ONE</stringProp>
-            <stringProp name="query">insert into receipts_by_store_date (store_id, receipt_date, register_id, receipt_timestamp, receipt_id, receipt_total) values (?,?,?,?,?,?)</stringProp>
-            <stringProp name="queryArguments">${store_id},${receipt_date} 00:00:00+0000,${register_id},${receipt_date} ${receipt_time}-0700,${receipt_id},${receipt_total}</stringProp>
+            <stringProp name="query">insert into receipts_by_store_date 
+  (store_id, receipt_date, register_id, receipt_timestamp, receipt_id, receipt_total,customer) 
+values 
+  (?,?,?,?,?,?,{first_name: ?, last_name: ?, addr1: ?, city: ?, state: ?, zip: ? })</stringProp>
+            <stringProp name="queryArguments">${store_id},${receipt_date} 00:00:00+0000,${register_id},${receipt_date} ${receipt_time}-0700,${receipt_id},${receipt_total},${udFirstName}, ${udLastName}, ${udAddress}, ${udCity}, ${udState}, ${udZip} </stringProp>
             <stringProp name="queryType">Prepared Statement</stringProp>
             <stringProp name="resultVariable"></stringProp>
             <stringProp name="sessionName">cc</stringProp>
