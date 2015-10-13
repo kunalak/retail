@@ -139,7 +139,7 @@ def receiptSearch():
 
     if not search_term:
         return render_template('receipt_search.jinja2',
-                               products = None)
+                               receipts = None)
 
     filter_by = request.args.get('filter_by')
 
@@ -155,19 +155,19 @@ def receiptSearch():
     # get the response
     results = cassandra_helper.session.execute(query)
 
-    #facet_query = 'SELECT * FROM receipts WHERE solr_query = ' \
-    #              '\'{%s,"facet":{"field":["store_id","register_id"]}}\' ' % solr_query
+    facet_query = 'SELECT * FROM receipts WHERE solr_query = ' \
+                  '\'{%s,"facet":{"field":["receipt_id","product_id"]}}\' ' % solr_query
 
-    #facet_results = cassandra_helper.session.execute(facet_query)
-    #facet_string = facet_results[0].get("facet_fields")
+    facet_results = cassandra_helper.session.execute(facet_query)
+    facet_string = facet_results[0].get("facet_fields")
 
     # convert the facet string to an ordered dict because solr sorts them desceding by count, and we like it!
-    # facet_map = json.JSONDecoder(object_pairs_hook=OrderedDict).decode(facet_string)
+    facet_map = json.JSONDecoder(object_pairs_hook=OrderedDict).decode(facet_string)
 
     return render_template('receipt_search.jinja2',
                            search_term = search_term,
-                           categories = '',
-                           suppliers = '',
+                           categories = filter_facets(facet_map['receipt_id']),
+                           suppliers = filter_facets(facet_map['product_id']),
                            receipts = results,
                            filter_by = filter_by)
 
