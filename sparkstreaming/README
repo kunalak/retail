@@ -1,4 +1,3 @@
-
 To build a fat jar
 
 sbt assembly
