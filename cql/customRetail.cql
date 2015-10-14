@@ -1,7 +1,7 @@
 -- ---------------------------------------------------
 -- NATE - setting up the usertype for customers and adding to existing tables
 -- ---------------------------------------------------
-REATE TYPE retail.cust_addr (
+CREATE TYPE retail.cust_addr (
         first_name text,
         last_name text,
         addr1 text,
@@ -33,17 +33,18 @@ CREATE TABLE IF NOT EXISTS retail.top_customers_by_store (
 -- ----------------------------------------------
 -- MATWATER  - Adding some basic tables for fraud
 -- ----------------------------------------------
-CREATE TABLE retail.credit_card_fraud_alert_by_day (
+CREATE TABLE IF NOT EXISTS retail.credit_card_fraud_alert_by_day (
     credit_card_number bigint,
     usage_date text,
     num_times_used int,
     PRIMARY KEY ((credit_card_number, usage_date), num_times_used)
 ) WITH CLUSTERING ORDER BY (num_times_used DESC);
 
-CREATE TABLE retail.credit_card_fraud_alert_by_day (
+CREATE TABLE IF NOT EXISTS retail.credit_card_fraud_alert_by_day_hour (
     credit_card_number bigint,
     usage_date text,
     num_times_used int,
+    hour_used text,
     PRIMARY KEY ((credit_card_number, usage_date), num_times_used)
 ) WITH CLUSTERING ORDER BY (num_times_used DESC);
 
