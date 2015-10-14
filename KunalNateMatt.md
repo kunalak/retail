@@ -79,7 +79,10 @@ then recreated
 dsetool create_core retail.receipts schema=receipts.xml solrconfig=solrconfig.xml reindex=true
 ```
 ### create web pages
-Created using the python builds and templates.  Added link to index page.  The page allows you to do a solr search on product name against the receipts table.  Data is presented 
+Created using the python builds and templates.  Added link to index page.  
+![Alt text](SolrSearchReceipts.png "Solr Receipt Search added to Index page")
+
+The page allows you to do a solr search on product name against the receipts table.  Data is presented 
 ```
  Receipt ID	 Product ID	 Product Name	 Store ID	 Register 	 Price 	 Quantity
 ```
