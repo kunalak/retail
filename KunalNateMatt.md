@@ -20,6 +20,73 @@ val top_customers_by_store_df = csc.sql("select customer, store_id, SUM(receipt_
     
 top_customers_by_store_df.write.format("org.apache.spark.sql.cassandra").options(Map("keyspace" -> "retail", "table" -> "top_customers_by_store")).mode(SaveMode.Overwrite).save()
     
+    
+## 3. Search receipts by product
+### create a solr core
+
+First had the system create it by running
+```
+dsetool create_core retail.receipts generateResources=true reindex=true deleteAll=true 
+```
+then looking at the core create via http://localhost:8983/solr/#/~cores and pull down the schema and tweak.
+Main tweak was making sure the product_id field was not split like a text field, but instead was a string. This means the schema ended up being.
+```
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<schema name="autoSolrSchema" version="1.5">
+	<types>
+		<fieldType class="org.apache.solr.schema.TrieLongField"
+			name="TrieLongField" />
+		<fieldType class="org.apache.solr.schema.TextField" name="NonParsed" />
+		<fieldType class="org.apache.solr.schema.TextField" name="TextField">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+			</analyzer>
+		</fieldType>
+		<fieldType class="com.datastax.bdp.search.solr.core.types.DecimalStrField"
+			name="DecimalStrField" />
+		<fieldType class="org.apache.solr.schema.UUIDField" name="UUIDField" />
+		<fieldType class="org.apache.solr.schema.TrieIntField" name="TrieIntField" />
+	</types>
+	<fields>
+		<field indexed="true" multiValued="false" name="receipt_id"
+			stored="true" type="TrieLongField" />
+		<field indexed="true" multiValued="false" name="product_name"
+			stored="true" type="TextField" />
+		<field indexed="true" multiValued="false" name="product_id"
+			stored="true" type="NonParsed" />
+		<field indexed="true" multiValued="false" name="unit_price"
+			stored="true" type="DecimalStrField" />
+		<field indexed="true" multiValued="false" name="scan_id" stored="true"
+			type="UUIDField" />
+		<field indexed="true" multiValued="false" name="total" stored="true"
+			type="DecimalStrField" />
+		<field indexed="true" multiValued="false" name="quantity"
+			stored="true" type="TrieIntField" />
+	</fields>
+	<defaultSearchField>product_name</defaultSearchField>
+	<uniqueKey>(receipt_id,scan_id)</uniqueKey>
+</schema>
+```
+With the file name being saved as receipts.xml
+
+We then dropped the core so it can be recreated with our tweaks 
+```
+dsetool unload_core retail.receipts
+```
+then recreated
+```
+dsetool create_core retail.receipts schema=receipts.xml solrconfig=solrconfig.xml reindex=true
+```
+### create web pages
+Created using the python builds and templates.  Added link to index page.  The page allows you to do a solr search on product name against the receipts table.  Data is presented 
+```
+ Receipt ID	 Product ID	 Product Name	 Store ID	 Register 	 Price 	 Quantity
+```
+
+With Receipt ID taking you to the recipet details page, and product id taking you to the product details page.  Facet search on 'Receipt ID' and 'Product ID'.  Becuase of the product id faceting is why we made sure the field was not parsed.
+
+
 ## Results/Lessons/Comments:
 
 
