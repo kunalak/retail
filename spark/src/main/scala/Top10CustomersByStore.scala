@@ -1,56 +1,38 @@
 import com.datastax.spark.connector._
 import org.apache.spark.{SparkConf, SparkContext}
 
-import scala.math.BigDecimal.RoundingMode
 
-case class Store(
-                  store_id: Int,
-                  address: String,
-                  address_2: String,
-                  address_3: String,
-                  city: String,
-                  state: String,
-                  zip: Long,
-                  size_in_sf: Int)
+case class Cust(
+                 first_name: String,
+                 last_name: String,
+                 zip:String
+                 )
 
-object RollupRetail {
+object Top10CustomersByStore {
+
+  // Function to create Cust class for Customer UDT
+  def udt2Cust(cust:UDTValue) = Cust(cust.getString("first_name"), cust.getString("last_name"), cust.getString("zip"))
 
   def main(args: Array[String]) {
 
-//    Create Spark Context
-    val conf = new SparkConf(true).setAppName("RollupRetail")
+    //  Create Spark Context
+    val conf = new SparkConf(true).setAppName("Top10CustomersByStore")
 
-// We set master on the command line for flexibility
+    //  We set master on the command line for flexibility
     val sc = new SparkContext(conf)
 
-    // Create some general RDDs
+    //  Compute Top 10 Customers By Store
+    val storereceipts = sc.cassandraTable("retail","receipts_by_credit_card")
 
-    val stores = sc.cassandraTable("retail","stores").select("store_id","address",
-      "address_2","address_3","city","state","zip","size_in_sf"
-    ).as(Store)
+    val storecustomer_totals= storereceipts.map( row =>  ( (row.getInt("store_id"), row.getUDTValue("customer")), row.getDecimal("receipt_total") ) )
+        .reduceByKey(_+_)   // Adding up receipt total for key=storeid+customer
 
-    val receipts = sc.cassandraTable("retail","receipts_by_store_date")
+        storecustomer_totals.map{ case ((store, cust ), amt) => (store, (amt,cust)) }
+        .groupByKey.flatMap{ case (store, custAmtList) => custAmtList.toArray.sortBy( custamt => -custamt._1 ). // Flat map, convert to Array and sort by receipt_total
+          take(10).map(ca => (store, ca))}  // Filter sorted flatmap to get 10 records for amount+customer and map to Storeid.
 
-    val store_state = stores.map(s => (s.store_id, s.state))
+        .map{ case (store,(amt,cust) ) => (store, amt, cust) } //lastly map again to match the columnfamily order in top_customer_by_store table
 
-    // Compute Sales by State
-
-    val total_receipts_by_store =
-      receipts.map(r => (r.getInt("store_id"), r.getDecimal("receipt_total").setScale(2,RoundingMode.HALF_EVEN) )  )
-        .reduceByKey(_+_)   // Add up by store
-
-    total_receipts_by_store.join(store_state)                                 // (store_id, (receipt_total, store_state))                               //  (store, (total, state))
-      .map{case (store,(receipts_total, state)) => (state, receipts_total)}   // (state, total)
-      .reduceByKey(_+_)                                                       // (state, total) summed by state
-      .map{ case(state, receipts_total) => ("dummy", state, "US-" + state, receipts_total)} // (state, US-state, total)
-      .saveToCassandra("retail","sales_by_state",SomeColumns("dummy","state","region","receipts_total"))
-
-    // Compute Sales by date
-
-    val receipts_by_date = receipts.map(r => (r.getDate("receipt_date"), r.getDecimal("receipt_total")))
-
-    receipts_by_date.reduceByKey(_+_)
-      .map{ case (receipt_date,receipt_total) => ("dummy",receipt_date,receipt_total)}
-      .saveToCassandra("retail","sales_by_date",SomeColumns("dummy","sales_date","receipts_total"))
+        .saveToCassandra("retail","top_customers_by_store") // finally save to Cassandra
   }
 }
