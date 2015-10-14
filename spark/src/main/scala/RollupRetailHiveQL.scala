@@ -1,7 +1,8 @@
 import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.{SparkConf, SparkContext}
-
+import org.apache.spark.sql.SaveMode
+import org.apache.spark.sql.types.SQLUserDefinedType
 
 object RollupRetailHiveQL {
 
@@ -70,6 +71,10 @@ object RollupRetailHiveQL {
       .mode(SaveMode.Overwrite)
       .save()
 
+    // Compute top customers by store
+
+    val top_customers_by_store_df = hc.sql("select customer, store_id, SUM(receipt_total) as receipts_total, credit_card_number FROM receipts_by_credit_card GROUP BY store_id, credit_card_number,customer ORDER BY store_id ASC,receipts_total DESC")
+    top_customers_by_store_df.write.format("org.apache.spark.sql.cassandra").options(Map("keyspace" -> "retail", "table" -> "top_customers_by_store")).mode(SaveMode.Overwrite).save()
   }
 }
 

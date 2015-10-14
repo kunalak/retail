@@ -26,6 +26,7 @@ object RollupRetailDataframe {
     val receipts_by_store_date_df = cassandra_df("retail","receipts_by_store_date")
     val stores_df = cassandra_df("retail","stores")
 
+
     // Create some handy UDF's
 
     val concat = udf((s1:String, s2:String) => s1 + s2)
@@ -49,7 +50,7 @@ object RollupRetailDataframe {
     // Compute Sales by date
 
     val sales_by_date_df = receipts_by_store_date_df
-     .groupBy("receipt_date")
+     .groupBy("store_id")
       .sum("receipt_total")
       .select(lit("dummy") alias "dummy", col("receipt_date") as "sales_date", col("SUM(receipt_total)") cast "Decimal(10,2)" alias "receipts_total")
 
@@ -59,6 +60,7 @@ object RollupRetailDataframe {
       "table" -> "sales_by_date"))
       .mode(SaveMode.Overwrite)
       .save()
+
 
   }
 }

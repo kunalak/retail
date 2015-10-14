@@ -3,6 +3,7 @@
 *.pyc
 cache/
 target/
+.ipynb_checkpoints/
 .history
 *.log
 *.swp
