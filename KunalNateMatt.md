@@ -6,13 +6,15 @@
 3. Search receipts by product description, customer info.
 4. Detect fraud cases. (use of same card in different state within 24 hours)
 
-## draft edits
-commands below are for running in "dse spark shell"
+### 1. Modify data model to include Customer information to receipts.
+<<Matt edits here>> <<data was loaded using Jmeter with random data generator library>>
 
-import org.apache.spark.sql.SaveMode
-import org.apache.spark.sql.types.SQLUserDefinedType
+### 2. Determine top 10 customers at each store (by dollar amount spent)
+commands below were executed in DSE SPARK shell.
 
-csc.setKeyspace("retail")
+* import org.apache.spark.sql.SaveMode
+* import org.apache.spark.sql.types.SQLUserDefinedType
+* csc.setKeyspace("retail")
 
 val top_customers_by_store_df = csc.sql("select customer, store_id, SUM(receipt_total) as receipts_total, credit_card_number FROM receipts_by_credit_card GROUP BY store_id, credit_card_number,customer ORDER BY store_id ASC,receipts_total DESC")
     
