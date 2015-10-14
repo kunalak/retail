@@ -22,7 +22,7 @@ top_customers_by_store_df.write.format("org.apache.spark.sql.cassandra").options
     
     
 ## 3. Search receipts by product
-### create a solr core
+### Create a solr core
 
 First had the system create it by running
 ```
