@@ -40,10 +40,11 @@ CREATE TABLE IF NOT EXISTS retail.credit_card_fraud_alert_by_day (
     PRIMARY KEY ((credit_card_number, usage_date), num_times_used)
 ) WITH CLUSTERING ORDER BY (num_times_used DESC);
 
-CREATE TABLE IF NOT EXISTS retail.credit_card_fraud_alert_by_day (
+CREATE TABLE IF NOT EXISTS retail.credit_card_fraud_alert_by_day_hour (
     credit_card_number bigint,
     usage_date text,
     num_times_used int,
+    hour_used text,
     PRIMARY KEY ((credit_card_number, usage_date), num_times_used)
 ) WITH CLUSTERING ORDER BY (num_times_used DESC);
 
