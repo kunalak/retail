@@ -80,12 +80,16 @@ dsetool create_core retail.receipts schema=receipts.xml solrconfig=solrconfig.xm
 ```
 ### create web pages
 Created using the python builds and templates.  Added link to index page.  
-![Alt text](SolrSearchReceipts.png "Solr Receipt Search added to Index page")
+
+![Solr Receipt Search added to Index page](SolrSearchReceipts.png "Solr Receipt Search added to Index page")
+
 
 The page allows you to do a solr search on product name against the receipts table.  Data is presented 
 ```
  Receipt ID	 Product ID	 Product Name	 Store ID	 Register 	 Price 	 Quantity
 ```
+
+![Solr Receipt Search Details](SolrSearchReceiptsDetails.png "Solr Receipt Search Details")
 
 With Receipt ID taking you to the recipet details page, and product id taking you to the product details page.  Facet search on 'Receipt ID' and 'Product ID'.  Becuase of the product id faceting is why we made sure the field was not parsed.
 
