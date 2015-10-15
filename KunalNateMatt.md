@@ -7,7 +7,81 @@
 4. Detect fraud cases. (use of same card in different state within 24 hours)
 
 ### 1. Modify data model to include Customer information to receipts.
-<<Matt edits here>> <<data was loaded using Jmeter with random data generator library>>
+The first thing was decide on how we wanted to capture the data.  We decided to use a User Define Type, just for the challange of it, though we coudl have easily just extended the various tables.  They key here when using is where we wanted to use statics as a data model, and where it did not make sense.
+
+```
+CREATE TYPE retail.cust_addr (
+        first_name text,
+        last_name text,
+        addr1 text,
+        city text,
+        state text,
+        zip text
+);
+
+ALTER TABLE retail.receipts ADD customer frozen <cust_addr> static;
+
+ALTER TABLE retail.receipts_by_store_date ADD customer frozen <cust_addr>;
+
+ALTER TABLE retail.receipts_by_credit_card ADD customer frozen <cust_addr> static;
+```
+After that we needed to generate some customer data and we did that with a quick java class
+
+```
+ackage com.datastax.bootcamp.capstone.generatedata;
+
+import java.io.FileWriter;
+import java.util.Random;
+
+import org.fluttercode.datafactory.impl.DataFactory;
+
+public class NameAddressGenerator {
+
+	public static void main(String[] args) {
+		DataFactory df = new DataFactory();
+		String[] states = { "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA",
+				"KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY",
+				"NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI",
+				"WY" };
+		try {
+			FileWriter writer = new FileWriter("/Users/Matwater/UserData.csv");
+			Random rand = new Random();
+			for (int i = 0; i < 5000; i++) {
+
+				String firstName = df.getFirstName();
+				String lastName = df.getLastName();
+				String address = df.getAddress();
+				String city = df.getCity();
+				String state = states[rand.nextInt(50)];
+				String zip = df.getNumberText(5);
+
+				writer.append(firstName);
+				writer.append(',');
+				writer.append(lastName);
+				writer.append(',');
+				writer.append(address);
+				writer.append(',');
+				writer.append(city);
+				writer.append(',');
+				writer.append(state);
+				writer.append(',');
+				writer.append(zip);
+				writer.append('\n');
+
+			}
+
+			writer.flush();
+			writer.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+}
+
+```
+This created a simple csv file that had data.  Then we just had to update jmeter to pull from the file and when writing to cassandra include the customer data.  Once we had this we were then able to create reports, etc to acutally use this data.
+
 
 ### 2. Determine Top 10 customers at each store (by dollar amount spent)
 
