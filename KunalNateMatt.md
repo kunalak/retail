@@ -9,7 +9,10 @@
 ### 1. Modify data model to include Customer information to receipts.
 <<Matt edits here>> <<data was loaded using Jmeter with random data generator library>>
 
-### 2. Determine top 10 customers at each store (by dollar amount spent)
+### 2. Determine Top 10 customers at each store (by dollar amount spent)
+
+#### Initial efforts/approach-  using SparkSQL/Dataframes:
+
 commands below were executed in DSE SPARK shell.
 
 * import org.apache.spark.sql.SaveMode
@@ -17,10 +20,65 @@ commands below were executed in DSE SPARK shell.
 * csc.setKeyspace("retail")
 
 val top_customers_by_store_df = csc.sql("select customer, store_id, SUM(receipt_total) as receipts_total, credit_card_number FROM receipts_by_credit_card GROUP BY store_id, credit_card_number,customer ORDER BY store_id ASC,receipts_total DESC")
+
+(assumption of 1creditcard/customer which we changed in the next approach, since customers can have multiple creditcards)
     
 top_customers_by_store_df.write.format("org.apache.spark.sql.cassandra").options(Map("keyspace" -> "retail", "table" -> "top_customers_by_store")).mode(SaveMode.Overwrite).save()
-    
-    
+
+* This sparkSQL approach stalled and was given up after we discovered a bug during Save() operation. -> "Cannot save to UDT rows in C * from UDT's read into Dataframes.". We opened the below DSE SPARK JIRA for this bug.
+```
+JIRA·Oct-14 1:40 AM
+ SPARKC-271: Cannot save to UDT C* Rows from UDT's read into Dataframes In Progress→Send to Reviewing→Reviewing
+by Russell Spitzer
+Assignee: Russell Spitzer
+```
+
+#### Final approach: using regular RDD based ETL operations
+Top10CustomersByStore.scala code below:
+```
+import com.datastax.spark.connector._
+import org.apache.spark.{SparkConf, SparkContext}
+
+// Customer struct to retrieve the UDT values from C* row.
+case class Cust(
+                 first_name: String,
+                 last_name: String,
+                 zip:String
+                 )
+
+object Top10CustomersByStore {
+
+  // Function to create Cust class for Customer UDT
+  def udt2Cust(cust:UDTValue) = Cust(cust.getString("first_name"), cust.getString("last_name"), cust.getString("zip"))
+
+  def main(args: Array[String]) {
+
+    //  Create Spark Context
+    val conf = new SparkConf(true).setAppName("Top10CustomersByStore")
+
+    //  We set master on the command line for flexibility
+    val sc = new SparkContext(conf)
+
+    //  Compute Top 10 Customers By Store
+    val storereceipts = sc.cassandraTable("retail","receipts_by_credit_card")
+
+    val storecustomer_totals= storereceipts.map( row =>  ( (row.getInt("store_id"), row.getUDTValue("customer")), row.getDecimal("receipt_total") ) )
+        .reduceByKey(_+_)   // Adding up receipt total for key=storeid+customer
+
+        storecustomer_totals.map{ case ((store, cust ), amt) => (store, (amt,cust)) }
+        .groupByKey.flatMap{ case (store, custAmtList) => custAmtList.toArray.sortBy( custamt => -custamt._1 ). // Flat map, convert to Array and sort by receipt_total
+          take(10).map(ca => (store, ca))}  // Filter sorted flatmap to get 10 records for amount+customer and map to Storeid.
+
+        .map{ case (store,(amt,cust) ) => (store, amt, cust) } //lastly map again to match the columnfamily order in top_customer_by_store table
+
+        .saveToCassandra("retail","top_customers_by_store") // finally save to Cassandra
+  }
+}
+```
+
+To run the program, execute:
+* dse spark-submit --class Top10CustomersByStore spark-top10customersbystore-assembly-1.1.jar
+
 ## 3. Search receipts by product
 ### Create a solr core
 
