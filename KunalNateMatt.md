@@ -1,13 +1,96 @@
 # Capstone project - Bootcamp8 (Team America - Kunal, Nate and Matt)
 
-## Goals:
-1. Extend/Modify the data model to add Customer information to receipts.
-2. Determine top 10 customers at each store (by dollar amount).
-3. Search receipts by product description, customer info.
-4. Detect fraud cases. (use of same card in different state within 24 hours)
+## BigBox Stores- DataStax PoC Objective:
+Demonstrate & validate DataStaxEnterprise(DSE) - an enterprise class highly available distributed NoSQL database running Cassandra at the core with full Spark & Solr integration, as the right solution for-
+
+* multiple retail workloads, like-
+PoS transactions, Customer/Txn lookups, Sales Analytics, Fraud Detection, Personlization/Recommendations etc.)
+
+in the same managed cluster, without having to move your data across systems.
+
+## PoC Goals:
+1. Extensible Data Model - Validate & Extend/Modify existing data model to add Customer information to PoS receipts.
+2. Sales Analytics - Determine top 10 customers at each store (by dollar amount).
+3. Fast Customer/Transaction Search - Search receipts by product description, customer info.
+4. Fraud Detection - Use of same creditcard same day (yellow flag), in the same hour(orange flag) 
 
 ### 1. Modify data model to include Customer information to receipts.
-<<Matt edits here>> <<data was loaded using Jmeter with random data generator library>>
+The first thing was decide on how we wanted to capture the data.  We decided to use a User Define Type, just for the challange of it, though we coudl have easily just extended the various tables.  They key here when using is where we wanted to use statics as a data model, and where it did not make sense.
+
+```
+CREATE TYPE retail.cust_addr (
+        first_name text,
+        last_name text,
+        addr1 text,
+        city text,
+        state text,
+        zip text
+);
+
+ALTER TABLE retail.receipts ADD customer frozen <cust_addr> static;
+
+ALTER TABLE retail.receipts_by_store_date ADD customer frozen <cust_addr>;
+
+ALTER TABLE retail.receipts_by_credit_card ADD customer frozen <cust_addr> static;
+```
+After that we needed to generate some customer data and we did that with a quick java class
+
+```
+package com.datastax.bootcamp.capstone.generatedata;
+
+import java.io.FileWriter;
+import java.util.Random;
+
+import org.fluttercode.datafactory.impl.DataFactory;
+
+public class NameAddressGenerator {
+
+	public static void main(String[] args) {
+		DataFactory df = new DataFactory();
+		String[] states = { "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA",
+				"KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY",
+				"NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI",
+				"WY" };
+		try {
+			FileWriter writer = new FileWriter("/Users/Matwater/UserData.csv");
+			Random rand = new Random();
+			for (int i = 0; i < 5000; i++) {
+
+				String firstName = df.getFirstName();
+				String lastName = df.getLastName();
+				String address = df.getAddress();
+				String city = df.getCity();
+				String state = states[rand.nextInt(50)];
+				String zip = df.getNumberText(5);
+
+				writer.append(firstName);
+				writer.append(',');
+				writer.append(lastName);
+				writer.append(',');
+				writer.append(address);
+				writer.append(',');
+				writer.append(city);
+				writer.append(',');
+				writer.append(state);
+				writer.append(',');
+				writer.append(zip);
+				writer.append('\n');
+
+			}
+
+			writer.flush();
+			writer.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+}
+
+```
+This created a simple csv file that had data.  Then we just had to update jmeter to pull from the file and when writing to cassandra include the customer data.  Once we had this we were then able to create reports, etc to acutally use this data.
+
+Big thing figured out through this is, be very careful with white spaces in jmeter as it does not ignore them and thus it can create major problems.
 
 ### 2. Determine Top 10 customers at each store (by dollar amount spent)
 
@@ -136,7 +219,7 @@ then recreated
 ```
 dsetool create_core retail.receipts schema=receipts.xml solrconfig=solrconfig.xml reindex=true
 ```
-### create web pages
+### Create web pages
 Created using the python builds and templates.  Added link to index page.  
 
 ![Solr Receipt Search added to Index page](SolrSearchReceipts.png "Solr Receipt Search added to Index page")
@@ -152,14 +235,33 @@ The page allows you to do a solr search on product name against the receipts tab
 With Receipt ID taking you to the recipet details page, and product id taking you to the product details page.  Facet search on 'Receipt ID' and 'Product ID'.  Becuase of the product id faceting is why we made sure the field was not parsed.
 
 
-## Results/Lessons/Comments:
-
-
-## Doing Fraud Detection
+## 4. Doing Fraud Detection
 For fraud detection started with a couple of basic, simple rules.   If a credit card is used more than once per day, want to send a warning for someone to look into.  If the same credit card is used the same day in the same hour, send a bigger flag.
 
 This is over simplification, what you will want to be able to do long term is to build in custome usage behavior through machine learning to figure out individual limits.  This simple rule is a starting place to show what can be done.
 
+### Table set up
+How the tables to capture data
+
+```
+CREATE TABLE IF NOT EXISTS retail.credit_card_fraud_alert_by_day (
+    credit_card_number bigint,
+    usage_date text,
+    num_times_used int,
+    PRIMARY KEY ((credit_card_number, usage_date), num_times_used)
+) WITH CLUSTERING ORDER BY (num_times_used DESC);
+
+
+CREATE TABLE IF NOT EXISTS retail.credit_card_fraud_alert_by_day_hour (
+    credit_card_number bigint,
+    usage_date text,
+    num_times_used int,
+    hour_used text,
+    PRIMARY KEY ((credit_card_number, usage_date), num_times_used)
+) WITH CLUSTERING ORDER BY (num_times_used DESC);
+```
+
+### Scala code
 The code to do this is created in a singlce file, FraudDetection.scala.  See code below
 
 ```
@@ -205,5 +307,15 @@ to execute the job, after you build the project using sbt, just do a
 ```
 dse spark-submit --class FraudDetection spark-fraud-assembly-1.1.jar
 ```
+### Web Page
 
+![Basic Fraud Alert Page](FraudAlert.png "Basic Fraud Alert Page")
 
+Again very basic page.  In a real app there should be a work flow.  Sayign ok, that is normal customer behavior (and still like machine learning to audimate some), or send notice to bank, etc.  Rules have to  be decided on how to display. I orginallys set up for more than 2 and how the job was written.  but with my sample data it was too much to display so did some bad things in the web page select (allow filtering) to get down to a decent sample. 
+
+This is very basic. For a real fraud we would want to do more stouff based on states, on stores (if in 20 states in 20 days, hey may want to look at that, etc).  The main purpose of this is learning how create, bundle and deploy a spark job via scala.
+
+## Results/Lessons/Comments:
+
+### Changes to project
+One of the things we really need is masking of credit cards.  This woudl change the datamodel every where.  But from a security and compliance stand point you woudl never make all the actual credit card numbers readly available to view to so many people.  You would have a strict control of that and show as ************ #### where #### is the last 4 digits of credit card.  So all the tables would be keyed off the credit card id and credit card mask rather than actual number.  This was something we would have like to tackle but in doing so we woudl not have had the chance to learn all the other aspects of thsi poorjct.  So skippped for now.

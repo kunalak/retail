@@ -1,0 +1,53 @@
+{% extends "/base.jinja2" %}
+
+{% block head %}
+{% endblock %}
+
+{% block body %}
+  <br>
+  <section>
+    <div id="list_div" style="float:right;width:80%">  
+      <h1>  Possible Credit Card Fraud: </h1> 
+      <h3><font color="red">High alert, card used more than twice an hour a given day</font></h2> 
+      <br>
+      <table border="1" "align="center" width="650">
+      <th width="30%">Credit Card Number</th>
+      <th width="30%">Date Use</th>
+      <th width="20%"># Times Used</th>
+      <th width="20%">Hour Used</th>
+      {% if fraudByHour %}
+        {% for fraud in fraudByHour %}
+           <tr>
+             <td nowrap>&nbsp;{{ fraud.credit_card_number }}</td>
+             <td align="center" nowrap>{{ fraud.usage_date}} </td>
+             <td align="center" nowrap>{{ fraud.num_times_used}} </td>
+             <td align="center" nowrap>{{ fraud.hour_used}}&nbsp; </td>
+           </tr>
+        {% endfor %}
+      {% endif %}
+      </table>
+      <p />&nbsp;
+      <p />&nbsp;
+      <p />
+      <h3><font color="orange">Medium alert, card used more than twice a day on a given day</font></h2>
+      <br>
+      <table border="1" "align="center"  width="650">
+      <th width="33%">Credit Card Number</th>
+      <th width="33%">Date Use</th>
+      <th width="33%"># Times Used</th>
+      {% if fraudByDay %}
+        {% for fraud in fraudByDay %}
+           <tr>
+             <td nowrap>&nbsp;{{ fraud.credit_card_number }}</td>
+             <td align="center" nowrap>{{ fraud.usage_date}} </td>
+             <td align="center" nowrap>{{ fraud.num_times_used}} </td>
+           </tr>
+        {% endfor %}
+      {% endif %}
+      </table>
+    </div>
+  </section>
+{% endblock %}
+
+{% block tail %}
+{% endblock %}
