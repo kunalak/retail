@@ -28,7 +28,7 @@ ALTER TABLE retail.receipts_by_credit_card ADD customer frozen <cust_addr> stati
 After that we needed to generate some customer data and we did that with a quick java class
 
 ```
-ackage com.datastax.bootcamp.capstone.generatedata;
+package com.datastax.bootcamp.capstone.generatedata;
 
 import java.io.FileWriter;
 import java.util.Random;
@@ -82,6 +82,7 @@ public class NameAddressGenerator {
 ```
 This created a simple csv file that had data.  Then we just had to update jmeter to pull from the file and when writing to cassandra include the customer data.  Once we had this we were then able to create reports, etc to acutally use this data.
 
+Big thing figured out through this is, be very careful with white spaces in jmeter as it does not ignore them and thus it can create major problems.
 
 ### 2. Determine Top 10 customers at each store (by dollar amount spent)
 
@@ -210,7 +211,7 @@ then recreated
 ```
 dsetool create_core retail.receipts schema=receipts.xml solrconfig=solrconfig.xml reindex=true
 ```
-### create web pages
+### Create web pages
 Created using the python builds and templates.  Added link to index page.  
 
 ![Solr Receipt Search added to Index page](SolrSearchReceipts.png "Solr Receipt Search added to Index page")
@@ -226,10 +227,7 @@ The page allows you to do a solr search on product name against the receipts tab
 With Receipt ID taking you to the recipet details page, and product id taking you to the product details page.  Facet search on 'Receipt ID' and 'Product ID'.  Becuase of the product id faceting is why we made sure the field was not parsed.
 
 
-## Results/Lessons/Comments:
-
-
-## Doing Fraud Detection
+## 4. Doing Fraud Detection
 For fraud detection started with a couple of basic, simple rules.   If a credit card is used more than once per day, want to send a warning for someone to look into.  If the same credit card is used the same day in the same hour, send a bigger flag.
 
 This is over simplification, what you will want to be able to do long term is to build in custome usage behavior through machine learning to figure out individual limits.  This simple rule is a starting place to show what can be done.
@@ -308,3 +306,5 @@ dse spark-submit --class FraudDetection spark-fraud-assembly-1.1.jar
 Again very basic page.  In a real app there should be a work flow.  Sayign ok, that is normal customer behavior (and still like machine learning to audimate some), or send notice to bank, etc.  Rules have to  be decided on how to display. I orginallys set up for more than 2 and how the job was written.  but with my sample data it was too much to display so did some bad things in the web page select (allow filtering) to get down to a decent sample. 
 
 This is very basic. For a real fraud we would want to do more stouff based on states, on stores (if in 20 states in 20 days, hey may want to look at that, etc).  The main purpose of this is learning how create, bundle and deploy a spark job via scala.
+
+## Results/Lessons/Comments:
