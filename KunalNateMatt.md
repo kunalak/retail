@@ -160,6 +160,28 @@ For fraud detection started with a couple of basic, simple rules.   If a credit 
 
 This is over simplification, what you will want to be able to do long term is to build in custome usage behavior through machine learning to figure out individual limits.  This simple rule is a starting place to show what can be done.
 
+### Table set up
+How the tables to capture data
+
+```
+CREATE TABLE IF NOT EXISTS retail.credit_card_fraud_alert_by_day (
+    credit_card_number bigint,
+    usage_date text,
+    num_times_used int,
+    PRIMARY KEY ((credit_card_number, usage_date), num_times_used)
+) WITH CLUSTERING ORDER BY (num_times_used DESC);
+
+
+CREATE TABLE IF NOT EXISTS retail.credit_card_fraud_alert_by_day_hour (
+    credit_card_number bigint,
+    usage_date text,
+    num_times_used int,
+    hour_used text,
+    PRIMARY KEY ((credit_card_number, usage_date), num_times_used)
+) WITH CLUSTERING ORDER BY (num_times_used DESC);
+```
+
+### Scala code
 The code to do this is created in a singlce file, FraudDetection.scala.  See code below
 
 ```
@@ -205,5 +227,10 @@ to execute the job, after you build the project using sbt, just do a
 ```
 dse spark-submit --class FraudDetection spark-fraud-assembly-1.1.jar
 ```
+### Web Page
 
+![Basic Fraud Alert Page](FraudAlert.png "Basic Fraud Alert Page")
 
+Again very basic page.  In a real app there should be a work flow.  Sayign ok, that is normal customer behavior (and still like machine learning to audimate some), or send notice to bank, etc.  Rules have to  be decided on how to display. I orginallys set up for more than 2 and how the job was written.  but with my sample data it was too much to display so did some bad things in the web page select (allow filtering) to get down to a decent sample. 
+
+This is very basic. For a real fraud we would want to do more stouff based on states, on stores (if in 20 states in 20 days, hey may want to look at that, etc).  The main purpose of this is learning how create, bundle and deploy a spark job via scala.
