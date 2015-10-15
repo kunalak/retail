@@ -58,11 +58,21 @@
                     Google Charts: Area Chart of Sales By Date
                 </a>
             </li>
-        <li>
-            <a href="/gcharts/Table/?url=/api/simplequery&q=select * from receipts_by_credit_card limit 100&order_col=store_id">
-                Google Charts: Table of Receipts Example
-            </a>
-        </li>
+		<li>
+		    <a href="/gcharts/Table/?url=/api/simplequery&q=select * from receipts_by_credit_card limit 100&order_col=store_id">
+			Google Charts: Table of Receipts Example
+		    </a>
+		</li>
+            <li>
+                <a href="/gcharts/Table/?url=/api/top_customers_by_store_id_all">
+                    Google Charts: Top Customers by Store ID (all)
+                </a>
+            </li>
+            <li>
+                <a href="/gcharts/Table/?url=/api/top_customers_by_store_id_top_10?store_id=140">
+                    Google Charts: Top 10 Customers by Store ID
+                </a>
+            </li>
         </ul>
         <br>
         Rest API Example
@@ -73,8 +83,8 @@
             <br>/api/simplequery&q=select * from receipts_by_credit_card limit 100
         </li>
         <li>
-            <a href="/api/top_customers_by_store_id?store_id=140&top_n=10">API: Top N customers by store_id</a>
-            <br>/api/top_customers_by_store_id?store_id=140&top_n=10
+            <a href="/api/top_customers_by_store_id_top_10?store_id=140">API: Top 10 customers by store_id</a>
+            <br>/api/top_customers_by_store_id?store_id=140
         </li>
     </ul>
 {% endblock %}

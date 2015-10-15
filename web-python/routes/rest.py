@@ -11,6 +11,19 @@ rest_api = Blueprint('rest_api', __name__)
 timeslice_query = None
 simple_queries = {}
 
+CUSTOMER_DESCRIPTION = [
+    {'id':'first_name', 'label':'First Name', 'type': 'string'},
+    {'id':'last_name', 'label':'Last Name', 'type': 'string'},
+    {'id':'addr1', 'label':'Address', 'type': 'string'},
+    {'id':'city', 'label':'City', 'type': 'string'},
+    {'id':'state', 'label':'State', 'type': 'string'},
+    {'id':'zip', 'label':'Zip', 'type': 'string'}
+]
+
+def flatten_customer(cust):
+    return [cust.first_name, cust.last_name, cust.addr1, cust.city, cust.state, cust.zip]
+
+
 
 #
 # Helper function to have json.dump format dates correctly
@@ -115,26 +128,47 @@ def timeslice(series=None):
     thejson = dumps([description] + data, default=fix_json_format)
     return thejson
 
-@rest_api.route('/top_customers_by_store_id')
-def top_customers_by_store_id():
+@rest_api.route('/top_customers_by_store_id_top_10')
+def top_customers_by_store_id_top_10():
 
-    store_id = int(request.args.get('store_id'))
-    top_n = int(request.args.get('top_n'))
+    store_id = int(request.args.get('store_id')[:-1]) # hack to get around extra "?"
 
     # do cassandra query
     statement = "SELECT store_id, receipts_total, customer FROM top_customers_by_store" \
-                " WHERE store_id = ?" \
-                " LIMIT ?"
+                " WHERE store_id = ?"
 
-    description = [
-            {'id':'store_id', 'label':'Store ID', 'type': 'number'},
-            {'id':'receipts_total', 'label':'Receipts Total', 'type': 'number'},
-            {'id':'customer', 'label':'Customer', 'type': 'list'},
+    description = [ 
+        {'id':'store_id', 'label':'Store ID', 'type': 'number'},
+        {'id':'receipts_total', 'label':'Receipts Total', 'type': 'number'}
     ]
+
+    description += CUSTOMER_DESCRIPTION
 
     query = cassandra_helper.session.prepare(statement)
 
-    results = cassandra_helper.session.execute(query, [store_id, top_n])
+    results = cassandra_helper.session.execute(query, [store_id])
+    results = [ [x['store_id'], x['receipts_total']] + flatten_customer(x['customer']) for x in results ]
+    
+    thejson = dumps([description] + results, default=fix_json_format)
+    return thejson
+
+@rest_api.route('/top_customers_by_store_id_all')
+def top_customers_by_store_id_all():
+
+    # do cassandra query
+    statement = "SELECT store_id, receipts_total, customer FROM top_customers_by_store"
+
+    description = [ 
+        {'id':'store_id', 'label':'Store ID', 'type': 'number'},
+        {'id':'receipts_total', 'label':'Receipts Total', 'type': 'number'}
+    ]
+    description += CUSTOMER_DESCRIPTION
+
+    query = cassandra_helper.session.prepare(statement)
+
+    results = cassandra_helper.session.execute(query)
+
+    results = [ [x['store_id'], x['receipts_total']] + flatten_customer(x['customer']) for x in results ]
     
     thejson = dumps([description] + results, default=fix_json_format)
     return thejson
