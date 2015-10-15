@@ -25,12 +25,13 @@ val top_customers_by_store_df = csc.sql("select customer, store_id, SUM(receipt_
     
 top_customers_by_store_df.write.format("org.apache.spark.sql.cassandra").options(Map("keyspace" -> "retail", "table" -> "top_customers_by_store")).mode(SaveMode.Overwrite).save()
 
-* This sparkSQL approach stalled and was given up after we discovered a bug during Save() operation. -> Cannot save to ``UDT rows in C * from UDT's read into Dataframes.
+* This sparkSQL approach stalled and was given up after we discovered a bug during Save() operation. -> "Cannot save to UDT rows in C * from UDT's read into Dataframes.". We opened the below DSE SPARK JIRA for this bug.
+```
 JIRA·Oct-14 1:40 AM
  SPARKC-271: Cannot save to UDT C* Rows from UDT's read into Dataframes In Progress→Send to Reviewing→Reviewing
 by Russell Spitzer
 Assignee: Russell Spitzer
-``
+```
 
 #### Final approach: using regular RDD based ETL operations
 Top10CustomersByStore.scala code below:
