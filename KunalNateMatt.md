@@ -308,3 +308,6 @@ Again very basic page.  In a real app there should be a work flow.  Sayign ok, t
 This is very basic. For a real fraud we would want to do more stouff based on states, on stores (if in 20 states in 20 days, hey may want to look at that, etc).  The main purpose of this is learning how create, bundle and deploy a spark job via scala.
 
 ## Results/Lessons/Comments:
+
+### Changes to project
+One of the things we really need is masking of credit cards.  This woudl change the datamodel every where.  But from a security and compliance stand point you woudl never make all the actual credit card numbers readly available to view to so many people.  You would have a strict control of that and show as ************ #### where #### is the last 4 digits of credit card.  So all the tables would be keyed off the credit card id and credit card mask rather than actual number.  This was something we would have like to tackle but in doing so we woudl not have had the chance to learn all the other aspects of thsi poorjct.  So skippped for now.
