@@ -176,13 +176,13 @@ def receiptSearch():
 @web_api.route('/fraud/alerts')
 def fraudAlert():
     # get the possible fraud data by day
-    query = "SELECT * FROM credit_card_fraud_alert_by_day"
+    query = "SELECT * FROM credit_card_fraud_alert_by_day WHERE num_times_used > 2 ALLOW FILTERING"
 
     # get the response
     dayResults = cassandra_helper.session.execute(query)
     
     # get the possible fraud data by day and hour
-    query2 = "SELECT * FROM credit_card_fraud_alert_by_day_hour"
+    query2 = "SELECT * FROM credit_card_fraud_alert_by_day_hour WHERE num_times_used > 2 ALLOW FILTERING"
 
     # get the response
     dayHourResults = cassandra_helper.session.execute(query2)

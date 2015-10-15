@@ -4,64 +4,49 @@
 {% endblock %}
 
 {% block body %}
-     Possible Credit Card Fraud:<br>
-    <br>
-    <section>
-    <div id="facet" style="float:left;width:20%">
-    Narrow Results By:<br><br>
-{% if fraudByDay %}
-  <b>Receipt ID:</b><br>
-
-  {% for category in categories %}
-  {% set new_filter_by = 'receipt_id:"' + category.name + '"'%}
-  {% if filter_by %}
-    {% set new_filter_by = filter_by + " AND " + new_filter_by %}
-  {% endif %}
-
-  <a href="{{ makeURL("/web/search/receipts","s", search_term, "filter_by", new_filter_by) }}">{{ category.name }}:</a>&nbsp;{{ category.amount}}<br>
-  {% endfor %}
   <br>
-{% endif %}
-{% if fraudByHour %}
-  <b>Product ID:</b><br>
-
-  {% for supplier in suppliers %}
-  {% set new_filter_by = 'product_id:"' + supplier.name + '"' %}
-  {% if filter_by %}
-    {%   set new_filter_by = filter_by + " AND " + new_filter_by %}
-  {% endif %}
-
-  <a href="{{ makeURL("/web/search/receipts","s", search_term, "filter_by", new_filter_by) }}">{{ supplier.name }}:</a>&nbsp;{{ supplier.amount }}<br>
-  {% endfor %}
-{% endif %}
-
+  <section>
+    <div id="list_div" style="float:right;width:80%">  
+      <h1>  Possible Credit Card Fraud: </h1> 
+      <h3><font color="red">High alert, card used more than twice an hour a given day</font></h2> 
+      <br>
+      <table border="1" "align="center" width="650">
+      <th width="30%">Credit Card Number</th>
+      <th width="30%">Date Use</th>
+      <th width="20%"># Times Used</th>
+      <th width="20%">Hour Used</th>
+      {% if fraudByHour %}
+        {% for fraud in fraudByHour %}
+           <tr>
+             <td nowrap>&nbsp;{{ fraud.credit_card_number }}</td>
+             <td align="center" nowrap>{{ fraud.usage_date}} </td>
+             <td align="center" nowrap>{{ fraud.num_times_used}} </td>
+             <td align="center" nowrap>{{ fraud.hour_used}}&nbsp; </td>
+           </tr>
+        {% endfor %}
+      {% endif %}
+      </table>
+      <p />&nbsp;
+      <p />&nbsp;
+      <p />
+      <h3><font color="orange">Medium alert, card used more than twice a day on a given day</font></h2>
+      <br>
+      <table border="1" "align="center"  width="650">
+      <th width="33%">Credit Card Number</th>
+      <th width="33%">Date Use</th>
+      <th width="33%"># Times Used</th>
+      {% if fraudByDay %}
+        {% for fraud in fraudByDay %}
+           <tr>
+             <td nowrap>&nbsp;{{ fraud.credit_card_number }}</td>
+             <td align="center" nowrap>{{ fraud.usage_date}} </td>
+             <td align="center" nowrap>{{ fraud.num_times_used}} </td>
+           </tr>
+        {% endfor %}
+      {% endif %}
+      </table>
     </div>
-    <div id="list_div" style="float:right;width:80%">
-        <br>
-        <table border="1">
-        <th width="15%">&nbsp;Receipt ID</th>
-        <th width="20%">&nbsp;Product ID</th>
-        <th width="30%">&nbsp;Product Name</th>
-        <th width="8%">&nbsp;Store ID</th>
-        <th width="8%">&nbsp;Register&nbsp;</th>
-        <th width="8%">&nbsp;Price&nbsp;</th>
-        <th width="8%">&nbsp;Quantity&nbsp;</th>
-        {% if receipts %}
-            {% for receipt in receipts %}
-                <tr>
-                <td align="center" nowrap><a href="/web/receipt?receipt_id={{ receipt.receipt_id }}">{{ receipt.receipt_id }}</a></td>
-                <td nowrap>&nbsp;<a href="/web/product?product_id={{ receipt.product_id }}">{{ receipt.product_id }}</a></td>
-                <td nowrap>&nbsp;{{ receipt.product_name }}</td>
-                <td align="center" nowrap>{{ receipt.store_id}} </td>
-                <td align="center" nowrap>{{ receipt.register_id}} </td>
-                <td align="right" nowrap>${{ receipt.unit_price}}&nbsp; </td>
-                <td align="center" nowrap>{{ receipt.quantity}} </td>
-                </tr>
-            {% endfor %}
-        {% endif %}
-        </table>
-</div>
-</section>
+  </section>
 {% endblock %}
 
 {% block tail %}
