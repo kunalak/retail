@@ -118,26 +118,25 @@ def timeslice(series=None):
 @rest_api.route('/top_customers_by_store_id')
 def top_customers_by_store_id():
 
-    store_id = request.args.get('store_id')
-    top_n = request.args.get('top_n')
+    store_id = int(request.args.get('store_id'))
+    top_n = int(request.args.get('top_n'))
 
     # do cassandra query
-    statement = "SELECT customer, store_id, receipts_total, credit_card_number FROM top_customers_by_store" \
+    statement = "SELECT store_id, receipts_total, customer FROM top_customers_by_store" \
                 " WHERE store_id = ?" \
                 " LIMIT ?"
 
     description = [
-            {'id':'customer', 'label':'Customer', 'type': 'list'},
             {'id':'store_id', 'label':'Store ID', 'type': 'number'},
             {'id':'receipts_total', 'label':'Receipts Total', 'type': 'number'},
-            {'id':'credit_card_number','label':'CC Number','type':'number'},
+            {'id':'customer', 'label':'Customer', 'type': 'list'},
     ]
 
     query = cassandra_helper.session.prepare(statement)
 
     results = cassandra_helper.session.execute(query, [store_id, top_n])
     
-    thejson = dumps([description] + data, default=fix_json_format)
+    thejson = dumps([description] + results, default=fix_json_format)
     return thejson
 
 
