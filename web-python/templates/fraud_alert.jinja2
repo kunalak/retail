@@ -1,0 +1,68 @@
+{% extends "/base.jinja2" %}
+
+{% block head %}
+{% endblock %}
+
+{% block body %}
+     Possible Credit Card Fraud:<br>
+    <br>
+    <section>
+    <div id="facet" style="float:left;width:20%">
+    Narrow Results By:<br><br>
+{% if fraudByDay %}
+  <b>Receipt ID:</b><br>
+
+  {% for category in categories %}
+  {% set new_filter_by = 'receipt_id:"' + category.name + '"'%}
+  {% if filter_by %}
+    {% set new_filter_by = filter_by + " AND " + new_filter_by %}
+  {% endif %}
+
+  <a href="{{ makeURL("/web/search/receipts","s", search_term, "filter_by", new_filter_by) }}">{{ category.name }}:</a>&nbsp;{{ category.amount}}<br>
+  {% endfor %}
+  <br>
+{% endif %}
+{% if fraudByHour %}
+  <b>Product ID:</b><br>
+
+  {% for supplier in suppliers %}
+  {% set new_filter_by = 'product_id:"' + supplier.name + '"' %}
+  {% if filter_by %}
+    {%   set new_filter_by = filter_by + " AND " + new_filter_by %}
+  {% endif %}
+
+  <a href="{{ makeURL("/web/search/receipts","s", search_term, "filter_by", new_filter_by) }}">{{ supplier.name }}:</a>&nbsp;{{ supplier.amount }}<br>
+  {% endfor %}
+{% endif %}
+
+    </div>
+    <div id="list_div" style="float:right;width:80%">
+        <br>
+        <table border="1">
+        <th width="15%">&nbsp;Receipt ID</th>
+        <th width="20%">&nbsp;Product ID</th>
+        <th width="30%">&nbsp;Product Name</th>
+        <th width="8%">&nbsp;Store ID</th>
+        <th width="8%">&nbsp;Register&nbsp;</th>
+        <th width="8%">&nbsp;Price&nbsp;</th>
+        <th width="8%">&nbsp;Quantity&nbsp;</th>
+        {% if receipts %}
+            {% for receipt in receipts %}
+                <tr>
+                <td align="center" nowrap><a href="/web/receipt?receipt_id={{ receipt.receipt_id }}">{{ receipt.receipt_id }}</a></td>
+                <td nowrap>&nbsp;<a href="/web/product?product_id={{ receipt.product_id }}">{{ receipt.product_id }}</a></td>
+                <td nowrap>&nbsp;{{ receipt.product_name }}</td>
+                <td align="center" nowrap>{{ receipt.store_id}} </td>
+                <td align="center" nowrap>{{ receipt.register_id}} </td>
+                <td align="right" nowrap>${{ receipt.unit_price}}&nbsp; </td>
+                <td align="center" nowrap>{{ receipt.quantity}} </td>
+                </tr>
+            {% endfor %}
+        {% endif %}
+        </table>
+</div>
+</section>
+{% endblock %}
+
+{% block tail %}
+{% endblock %}

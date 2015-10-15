@@ -5,6 +5,7 @@ import json
 
 # from rest import session
 from collections import namedtuple
+from flask.templating import render_template
 
 web_api = Blueprint('web_api', __name__)
 
@@ -170,6 +171,25 @@ def receiptSearch():
                            suppliers = filter_facets(facet_map['product_id']),
                            receipts = results,
                            filter_by = filter_by)
+
+
+@web_api.route('/fraud/alerts')
+def fraudAlert():
+    # get the possible fraud data by day
+    query = "SELECT * FROM credit_card_fraud_alert_by_day"
+
+    # get the response
+    dayResults = cassandra_helper.session.execute(query)
+    
+    # get the possible fraud data by day and hour
+    query2 = "SELECT * FROM credit_card_fraud_alert_by_day_hour"
+
+    # get the response
+    dayHourResults = cassandra_helper.session.execute(query2)
+    
+    return render_template('fraud_alert.jinja2',
+                           fraudByDay = dayResults,
+                           fraudByHour = dayHourResults)
 
 #
 # The facets come in a list [ 'value1', 10, 'value2' 5, ...] with numbers in descending order
