@@ -1,10 +1,14 @@
 # Capstone project - Bootcamp8 (Team America - Kunal, Nate and Matt)
 
-## Goals:
-1. Extend/Modify the data model to add Customer information to receipts - Validating the data model.
-2. Determine top 10 customers at each store (by dollar amount).
-3. Search receipts by product description, customer info.
-4. Detect fraud cases. (use of same card in different state within 24 hours)
+## DataStax PoC Objective:
+Demonstrate & validate DataStaxEnterprise(DSE) - an enterprise class highly available distributed NoSQL database running Cassandra at the core with full Spark & Solr integration, as the right solution for-
+multiple retail workloads(including PoS transactions, Customer/Txn lookups, Sales Analytics, Fraud Detection, Personlization/Recommendations etc.) in the same managed cluster, without having to move your data across systems.
+
+## PoC Goals:
+1. Extensible Data Model - Validate & Extend/Modify existing data model to add Customer information to PoS receipts.
+2. Sales Analytics - Determine top 10 customers at each store (by dollar amount).
+3. Fast Customer/Transaction Search - Search receipts by product description, customer info.
+4. Fraud Detection - Use of same creditcard same day (yellow flag), in the same hour(orange flag) 
 
 ### 1. Modify data model to include Customer information to receipts.
 The first thing was decide on how we wanted to capture the data.  We decided to use a User Define Type, just for the challange of it, though we coudl have easily just extended the various tables.  They key here when using is where we wanted to use statics as a data model, and where it did not make sense.
