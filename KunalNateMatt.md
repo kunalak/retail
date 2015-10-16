@@ -1,6 +1,6 @@
 # Capstone project - Bootcamp8 (Team America - Kunal, Nate and Matt)
 
-## BigBox Stores- DataStax PoC Objective:
+## Retail- DataStax PoC Objective:
 Demonstrate & validate DataStaxEnterprise(DSE) - an enterprise class highly available distributed NoSQL database running Cassandra at the core with full Spark & Solr integration, as the right solution for-
 
 * multiple retail workloads, like-
